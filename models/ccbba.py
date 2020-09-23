@@ -102,6 +102,8 @@ class CCBBA(CBBA):
             auction_timer = auction_timer + 1
 
         self.logging.info('Finished auction')
+
+    def calc_total_reward(self):
         total_reward = 0
         for agent in self.agents:
             path_str = ''
@@ -110,6 +112,7 @@ class CCBBA(CBBA):
             self.logging.info('Agent %d Path: %s' % (agent.id, path_str))
             total_reward = total_reward + agent.calc_reward()
         self.logging.info('Total reward: %.2f' % total_reward)
+        return total_reward
 
     def get_activity(self, task_id):
         for activity in self.activities:
@@ -213,7 +216,7 @@ class CCBBA_Agent(CBBA_Agent):
 
             cum_dist = cum_dist + dist
 
-            reward = reward + task.reward * math.exp(-0.01 * cum_time)
+            reward = reward + task.reward * math.exp(-0.1 * cum_time)
 
             last_task_id = task_id
 

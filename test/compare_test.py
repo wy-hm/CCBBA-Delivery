@@ -5,12 +5,13 @@ import time
 from numpy.random import randint, choice, seed
 from numpy import exp
 from math import sqrt
+import numpy as np
 
-num_bases = 10
+num_bases = 5
 num_agents = 3
-num_deliveries = 10
+num_deliveries = 20
 
-seed(10)
+# seed(10)
 
 bases_pos = randint(1, 10, [num_bases, 2]).tolist()
 agents_pos = randint(1, 10, [num_agents, 2]).tolist()
@@ -163,3 +164,39 @@ for d in range(len(activities)):
                 str = '%s%d (%d)' % (str, task_id, agent.id)
 
     logging.info(str)
+
+#%%
+from matplotlib import pyplot as plt
+
+logging.getLogger().setLevel(logging.INFO)
+fig = plt.figure()
+ax = fig.gca()
+
+ax.set_xticks(np.arange(0, 10))
+ax.set_yticks(np.arange(0, 10))
+plt.grid()
+
+for base_pos in bases_pos:
+    plt.scatter(base_pos[0], base_pos[1], marker='s', s=1000, c='#dddddd')
+
+for d in range(len(delivery_pos)):
+    plt.scatter(bases_pos[delivery_pos[d]][0], bases_pos[delivery_pos[d]][1], marker='o', c='#000000', s=100)
+
+for agent in ccbba.agents:
+    plt.scatter(agent.pos[0], agent.pos[1], marker='^', s=200)
+
+for agent in ccbba.agents:
+    path = agent.path
+
+    x = [agent.pos[0]]
+    y = [agent.pos[1]]
+    for task_id in path:
+        x.append(agent.tasks[task_id].pos[0])
+        y.append(agent.tasks[task_id].pos[1])
+
+        x.append(agent.tasks[task_id].target[0])
+        y.append(agent.tasks[task_id].target[1])
+
+    plt.plot(x, y)
+
+plt.show()

@@ -1,7 +1,10 @@
+from models.cbba import CBBA
 from models.ccbba import CCBBA
+
 import logging
 import time
 from math import sqrt
+import numpy as np
 
 bases_pos = [[1, 2], [5, 1], [5, 4], [10, 4], [2, 6], [5, 8]]
 agents_pos = [[2, 1], [4, 6], [7, 1]]
@@ -118,9 +121,86 @@ for d in range(len(delivery_pos)):
 time_start = time.time()
 logging.getLogger().setLevel(logging.DEBUG)
 logging.debug('Starting Test Program')
+cbba = CBBA(bases_pos=bases_pos, agents_pos=agents_pos, tasks_pos=delivery_pos, tasks_target=delivery_target, tasks_reward=delivery_reward)
+cbba.run()
 ccbba = CCBBA(activities=activities, dependencies=dependencies, temporals=temporals, bases_pos=bases_pos,
               agents_pos=agents_pos, tasks_pos=tasks_pos, tasks_target=tasks_target, tasks_reward=tasks_reward)
 ccbba.run()
 
 time_end = time.time()
 logging.info('Running time: %.2f', time_end - time_start)
+
+#%%
+from matplotlib import pyplot as plt
+
+logging.getLogger().setLevel(logging.INFO)
+fig = plt.figure()
+ax = fig.gca()
+
+ax.set_xticks(np.arange(0, 11))
+ax.set_yticks(np.arange(0, 11))
+plt.grid()
+
+for base_pos in bases_pos:
+    plt.scatter(base_pos[0], base_pos[1], marker='s', s=1000, c='#dddddd')
+
+for d in range(len(delivery_pos)):
+    if d == 0:
+        label = 'Delivery'
+    else:
+        label = None
+    plt.scatter(bases_pos[delivery_pos[d]][0], bases_pos[delivery_pos[d]][1], marker='o', c='#000000', s=100, label=label)
+
+for agent in ccbba.agents:
+    if agent.id == 0:
+        label = 'Agent'
+    else:
+        label = None
+    plt.scatter(agent.pos[0], agent.pos[1], marker='s', s=100, label=label)
+
+for agent in ccbba.agents:
+    path = agent.path
+
+    x = [agent.pos[0]]
+    y = [agent.pos[1]]
+    for task_id in path:
+        x.append(agent.tasks[task_id].pos[0])
+        y.append(agent.tasks[task_id].pos[1])
+
+        x.append(agent.tasks[task_id].target[0])
+        y.append(agent.tasks[task_id].target[1])
+
+    if agent.id == 0:
+        label = 'Hybrid (CCBBA)'
+    else:
+        label = None
+    line = plt.plot(x, y, label=label)[0]
+    if len(path) > 0:
+        plt.arrow(x[-2], y[-2], x[-1]-x[-2], y[-1]-y[-2], color=line.get_color(), head_length=0.25, head_width=0.25, length_includes_head=True)
+
+ax.set_prop_cycle(None)
+
+for agent in cbba.agents:
+    path = agent.path
+
+    x = [agent.pos[0]]
+    y = [agent.pos[1]]
+    for task_id in path:
+        x.append(agent.tasks[task_id].pos[0])
+        y.append(agent.tasks[task_id].pos[1])
+
+        x.append(agent.tasks[task_id].target[0])
+        y.append(agent.tasks[task_id].target[1])
+
+    if agent.id == 0:
+        label = 'Direct (CBBA)'
+    else:
+        label = None
+    line = plt.plot(x, y, linestyle='dashed', label=label)[0]
+    if len(path) > 0:
+        plt.arrow(x[-1]-0.01*(x[-1]-x[-2]), y[-1]-0.01*(y[-1]-y[-2]), 0.01*(x[-1]-x[-2]), 0.01*(y[-1]-y[-2]), color=line.get_color(), head_length=0.25, head_width=0.25, length_includes_head=True)
+
+plt.legend()
+plt.show()
+
+
